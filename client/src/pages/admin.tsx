@@ -58,6 +58,7 @@ export default function Admin() {
   const [createTableDialogOpen, setCreateTableDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [editAdminDialogOpen, setEditAdminDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
@@ -205,6 +206,24 @@ export default function Admin() {
     });
   };
 
+  const handleEditAdminBalance = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user) return;
+    const formData = new FormData(e.currentTarget);
+    updateUserMutation.mutate({
+      id: user.id,
+      data: {
+        balance: formData.get("adminBalance") as string,
+      },
+    }, {
+      onSuccess: () => {
+        refetchUser();
+        setEditAdminDialogOpen(false);
+        toast({ title: "Success", description: "Your balance has been updated" });
+      }
+    });
+  };
+
   const totalPlayers = users?.length || 0;
   const activePlayers = users?.filter(u => !u.isSuspended).length || 0;
 
@@ -222,10 +241,49 @@ export default function Admin() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {user && (
+              <>
+                <div className="text-right mr-2">
+                  <div className="text-xs text-muted-foreground">Your Balance</div>
+                  <div className="text-lg font-bold text-accent">${user.balance}</div>
+                </div>
+                <Dialog open={editAdminDialogOpen} onOpenChange={setEditAdminDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" data-testid="button-edit-admin-balance">
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit Balance
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Your Balance</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleEditAdminBalance} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="adminBalance">Balance ($)</Label>
+                        <Input
+                          id="adminBalance"
+                          name="adminBalance"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          defaultValue={user.balance}
+                          required
+                          data-testid="input-admin-balance"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" data-testid="button-save-admin-balance">
+                        Update Balance
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
             <Button variant="ghost" onClick={() => setLocation("/lobby")} data-testid="button-to-lobby">
               <Home className="w-4 h-4 mr-2" />
-              Back to Tables
+              Play Games
             </Button>
             <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
               <LogOut className="w-4 h-4 mr-2" />
