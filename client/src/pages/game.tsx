@@ -139,19 +139,20 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border shadow-sm bg-card sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <div className="h-screen bg-background flex flex-col relative">
+      <header className="absolute top-0 left-0 right-0 z-20 md:relative md:border-b md:border-border md:shadow-sm md:bg-card">
+        <div className="max-w-7xl mx-auto px-2 md:px-6 py-2 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={handleLeaveTable}
               data-testid="button-leave-table"
+              className="flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-xl font-display font-bold">{gameState.tableName}</h1>
               <p className="text-sm text-muted-foreground">
                 ${gameState.stakeAmount} per round
@@ -159,10 +160,10 @@ export default function Game() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <TableHistory rounds={roundHistory} />
             {user?.username === "admin" && (
-              <Button variant="outline" onClick={handleGoToAdmin} data-testid="button-admin-panel">
+              <Button variant="outline" size="sm" onClick={handleGoToAdmin} data-testid="button-admin-panel" className="hidden md:flex">
                 <Settings className="w-4 h-4 mr-2" />
                 Admin
               </Button>
@@ -171,7 +172,7 @@ export default function Game() {
         </div>
       </header>
 
-      <main className="py-8">
+      <main className="flex-1 md:py-8 mt-12 md:mt-0">
         <PokerTable gameState={gameState} />
       </main>
 
