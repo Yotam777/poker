@@ -524,6 +524,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       startedAt: new Date(),
     });
 
+    await storage.createAuditLog({
+      eventType: "game_started",
+      gameId,
+      details: { tableId: game.tableId },
+    });
+
     await startRound(gameId, 1, io);
   }
 
@@ -562,7 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       cardIndex += 6;
     }
 
-    await storage.createRound({
+    const round = await storage.createRound({
       gameId,
       roundNumber,
       communityCards: communityCards as any,
@@ -570,6 +576,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       winnerId: null,
       winningHand: null,
       isTie: false,
+    });
+
+    await storage.createAuditLog({
+      eventType: "round_started",
+      gameId,
+      details: { roundNumber, playerCount: activePlayers.length },
     });
 
     await broadcastGameState(gameId, io);
@@ -651,6 +663,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const winnerUser = await storage.getUser(winner.player.userId);
+      
+      await storage.createAuditLog({
+        eventType: "round_winner",
+        gameId,
+        userId: winner.player.userId,
+        details: { roundNumber, handName: winner.handName, isTableWinner: updatedPlayer && updatedPlayer.roundsWon >= 2 },
+      });
+
       io.to(`game-${gameId}`).emit("round-winner", {
         userId: winner.player.userId,
         username: winnerUser?.username,
@@ -711,6 +731,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: "completed",
       commission: commission.toFixed(2),
       completedAt: new Date(),
+    });
+
+    await storage.createAuditLog({
+      eventType: "game_ended",
+      gameId,
+      details: { winnerCount: winners.length, totalPot: game.totalPot, commission: commission.toFixed(2) },
     });
 
     io.to(`game-${gameId}`).emit("game-ended", {

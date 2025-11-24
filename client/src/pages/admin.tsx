@@ -296,157 +296,157 @@ export default function Admin() {
               </div>
               
               <div className="flex gap-2">
-            <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" data-testid="button-open-settings">
-                  <SettingsIcon className="w-4 h-4 mr-2" />
-                  Settings
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Commission Settings</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateSettings} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="commissionRate">Commission Rate (%)</Label>
-                    <Input
-                      id="commissionRate"
-                      name="commissionRate"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      defaultValue={settings?.commissionRate || "5.00"}
-                      required
-                      data-testid="input-commission-rate"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" data-testid="button-save-settings">
-                    Save Settings
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+                <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" data-testid="button-open-settings">
+                      <SettingsIcon className="w-4 h-4 mr-2" />
+                      Settings
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Commission Settings</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateSettings} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="commissionRate">Commission Rate (%)</Label>
+                        <Input
+                          id="commissionRate"
+                          name="commissionRate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          defaultValue={settings?.commissionRate || "5.00"}
+                          required
+                          data-testid="input-commission-rate"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" data-testid="button-save-settings">
+                        Save Settings
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
 
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-create-user">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Create User
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New User</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreateUser} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      name="username"
-                      required
-                      data-testid="input-create-username"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      data-testid="input-create-password"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="balance">Initial Balance</Label>
-                    <Input
-                      id="balance"
-                      name="balance"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      defaultValue="100.00"
-                      required
-                      data-testid="input-create-balance"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" data-testid="button-submit-create">
-                    Create User
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <Card>
-          <CardContent className="p-0">
-            {usersLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                <div className="text-muted-foreground">Loading users...</div>
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-create-user">
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Create User
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New User</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateUser} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          name="username"
+                          required
+                          data-testid="input-create-username"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                          id="password"
+                          name="password"
+                          type="password"
+                          required
+                          data-testid="input-create-password"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="balance">Initial Balance</Label>
+                        <Input
+                          id="balance"
+                          name="balance"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          defaultValue="100.00"
+                          required
+                          data-testid="input-create-balance"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" data-testid="button-submit-create">
+                        Create User
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users?.filter(u => !u.isAdmin).map(user => (
-                    <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell>
-                        <span className="font-mono">${user.balance}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={user.isSuspended ? "destructive" : "secondary"}>
-                          {user.isSuspended ? "Suspended" : "Active"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setEditDialogOpen(true);
-                          }}
-                          data-testid={`button-edit-${user.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggleSuspend(user)}
-                          data-testid={`button-suspend-${user.id}`}
-                        >
-                          <Ban className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteUserMutation.mutate(user.id)}
-                          data-testid={`button-delete-${user.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                {usersLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                    <div className="text-muted-foreground">Loading users...</div>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Balance</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users?.filter(u => !u.isAdmin).map(user => (
+                        <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
+                          <TableCell className="font-medium">{user.username}</TableCell>
+                          <TableCell>
+                            <span className="font-mono">${user.balance}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.isSuspended ? "destructive" : "secondary"}>
+                              {user.isSuspended ? "Suspended" : "Active"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setEditDialogOpen(true);
+                              }}
+                              data-testid={`button-edit-${user.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleToggleSuspend(user)}
+                              data-testid={`button-suspend-${user.id}`}
+                            >
+                              <Ban className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteUserMutation.mutate(user.id)}
+                              data-testid={`button-delete-${user.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="tables" className="space-y-4">
@@ -574,12 +574,6 @@ export default function Admin() {
         </Tabs>
       </main>
 
-      <script>{`
-        document.getElementById('isPrivate')?.addEventListener('change', (e) => {
-          document.getElementById('passwordField').style.display = e.target.checked ? 'block' : 'none';
-        });
-      `}</script>
-
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -605,6 +599,12 @@ export default function Admin() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <script>{`
+        document.getElementById('isPrivate')?.addEventListener('change', (e) => {
+          document.getElementById('passwordField').style.display = e.target.checked ? 'block' : 'none';
+        });
+      `}</script>
     </div>
   );
 }
