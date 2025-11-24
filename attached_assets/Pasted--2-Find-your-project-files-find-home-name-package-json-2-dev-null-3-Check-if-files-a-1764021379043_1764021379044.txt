@@ -1,0 +1,39 @@
+
+# 2. Find your project files
+find /home -name "package.json" 2>/dev/null
+
+# 3. Check if files are still in /root/
+ls -la /root/package.json 2>/dev/null || echo "Not in /root/"
+ Describing process with id 0 - name poker-royal
+┌───────────────────┬───────────────────────────────────────┐
+│ status            │ online                                │
+│ name              │ poker-royal                           │
+│ namespace         │ default                               │
+│ version           │ N/A                                   │
+│ restarts          │ 14                                    │
+│ uptime            │ 0s                                    │
+│ script path       │ /usr/bin/bash                         │
+│ script args       │ -c npm run dev                        │
+│ error log path    │ /root/.pm2/logs/poker-royal-error.log │
+│ out log path      │ /root/.pm2/logs/poker-royal-out.log   │
+│ pid path          │ /root/.pm2/pids/poker-royal-0.pid     │
+│ interpreter       │ none                                  │
+│ interpreter args  │ N/A                                   │
+│ script id         │ 0                                     │
+│ exec cwd          │ /home/yotam/poker-royal               │
+│ exec mode         │ fork_mode                             │
+│ node.js version   │ N/A                                   │
+│ node env          │ N/A                                   │
+│ watch & reload    │ ✘                                     │
+│ unstable restarts │ 14                                    │
+│ created at        │ 2025-11-24T21:55:31.259Z              │
+└───────────────────┴───────────────────────────────────────┘
+ Divergent env variables from local env
+
+
+ Add your own code metrics: http://bit.ly/code-metrics
+ Use `pm2 logs poker-royal [--lines 1000]` to display logs
+ Use `pm2 env 0` to display environment variables
+ Use `pm2 monit` to monitor CPU and Memory usage poker-royal
+Not in /root/
+root@vps-e9de57e0:/home/yotam/poker-royal#
