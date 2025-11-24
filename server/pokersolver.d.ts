@@ -1,10 +1,8 @@
 declare module 'pokersolver' {
-  interface Hand {
+  export interface Hand {
     name: string;
     rank: number;
   }
   
-  function solve(cardArrays: string[][]): Hand[];
-  
-  export = { solve };
+  export function solve(cardArrays: string[][]): Hand[];
 }
