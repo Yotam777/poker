@@ -11,6 +11,9 @@ export const users = pgTable("users", {
   balance: decimal("balance", { precision: 10, scale: 2 }).notNull().default("0"),
   isAdmin: boolean("is_admin").notNull().default(false),
   isSuspended: boolean("is_suspended").notNull().default(false),
+  totalWinnings: decimal("total_winnings", { precision: 10, scale: 2 }).notNull().default("0"),
+  gamesPlayed: integer("games_played").notNull().default(0),
+  gamesWon: integer("games_won").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -21,6 +24,8 @@ export const tables = pgTable("tables", {
   stakeAmount: decimal("stake_amount", { precision: 10, scale: 2 }).notNull(),
   password: text("password"),
   maxPlayers: integer("max_players").notNull().default(6),
+  autoCloseMinutes: integer("auto_close_minutes").notNull().default(5),
+  isPrivate: boolean("is_private").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -62,10 +67,34 @@ export const rounds = pgTable("rounds", {
   completedAt: timestamp("completed_at"),
 });
 
+// Audit Logs - track all significant game events
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventType: text("event_type").notNull(), // 'game_started', 'game_ended', 'player_joined', 'round_completed', etc.
+  gameId: varchar("game_id").references(() => games.id),
+  userId: varchar("user_id").references(() => users.id),
+  details: jsonb("details"), // Additional event data
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Player Stats - track player performance metrics
+export const playerStats = pgTable("player_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  totalGamesPlayed: integer("total_games_played").notNull().default(0),
+  totalGamesWon: integer("total_games_won").notNull().default(0),
+  totalTableWins: integer("total_table_wins").notNull().default(0),
+  totalRoundWins: integer("total_round_wins").notNull().default(0),
+  totalWinnings: decimal("total_winnings", { precision: 10, scale: 2 }).notNull().default("0"),
+  totalLosses: decimal("total_losses", { precision: 10, scale: 2 }).notNull().default("0"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // System settings
 export const settings = pgTable("settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).notNull().default("5.00"), // percentage
+  tableAutoCloseMinutes: integer("table_auto_close_minutes").notNull().default(5),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
@@ -73,6 +102,9 @@ export const settings = pgTable("settings", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  totalWinnings: true,
+  gamesPlayed: true,
+  gamesWon: true,
 });
 
 export const insertTableSchema = createInsertSchema(tables).omit({
@@ -97,6 +129,16 @@ export const insertRoundSchema = createInsertSchema(rounds).omit({
   completedAt: true,
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPlayerStatsSchema = createInsertSchema(playerStats).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export const insertSettingsSchema = createInsertSchema(settings).omit({
   id: true,
   updatedAt: true,
@@ -117,6 +159,12 @@ export type GamePlayer = typeof gamePlayers.$inferSelect;
 
 export type InsertRound = z.infer<typeof insertRoundSchema>;
 export type Round = typeof rounds.$inferSelect;
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+export type InsertPlayerStats = z.infer<typeof insertPlayerStatsSchema>;
+export type PlayerStats = typeof playerStats.$inferSelect;
 
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 export type Settings = typeof settings.$inferSelect;
