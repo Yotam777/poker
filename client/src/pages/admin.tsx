@@ -61,6 +61,10 @@ export default function Admin() {
   const [editAdminDialogOpen, setEditAdminDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+  const { data: user, isLoading: userLoading, refetch: refetchUser } = useQuery<User>({
+    queryKey: ["/api/auth/me"],
+  });
+
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
   });
