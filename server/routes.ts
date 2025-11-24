@@ -331,40 +331,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tables", async (req, res) => {
     try {
       const tables = await storage.getAllTables();
+      console.log(`[/api/tables] Found ${tables.length} tables in database`);
       
-      const tablesWithPlayers = await Promise.all(
+      const tablesWithPlayers = await Promise.allSettled(
         tables.map(async (table) => {
-          const game = await storage.getGameByTableId(table.id);
-          
-          if (!game) {
+          try {
+            const game = await storage.getGameByTableId(table.id);
+            
+            if (!game) {
+              return {
+                ...table,
+                playerCount: 0,
+                playerNames: [],
+              };
+            }
+
+            const players = await storage.getGamePlayers(game.id);
+            const activePlayers = Array.isArray(players) 
+              ? players.filter(p => p && p.isActive === true) 
+              : [];
+            
+            const playerNames = await Promise.all(
+              activePlayers.map(async (p) => {
+                const user = await storage.getUser(p.userId);
+                return user?.username || "Unknown";
+              })
+            );
+
+            return {
+              ...table,
+              playerCount: activePlayers.length,
+              playerNames,
+            };
+          } catch (tableError) {
+            console.error(`[/api/tables] Error processing table ${table.id}:`, tableError);
+            // Return table with no players if processing fails
             return {
               ...table,
               playerCount: 0,
               playerNames: [],
             };
           }
-
-          const players = await storage.getGamePlayers(game.id);
-          const activePlayers = players.filter(p => p.isActive);
-          
-          const playerNames = await Promise.all(
-            activePlayers.map(async (p) => {
-              const user = await storage.getUser(p.userId);
-              return user?.username || "Unknown";
-            })
-          );
-
-          return {
-            ...table,
-            playerCount: activePlayers.length,
-            playerNames,
-          };
         })
       );
 
-      res.json(tablesWithPlayers);
+      // Extract results, handling both fulfilled and rejected promises
+      const results = tablesWithPlayers
+        .map((result) => {
+          if (result.status === "fulfilled") {
+            return result.value;
+          } else {
+            console.error(`[/api/tables] Promise rejected:`, result.reason);
+            return null;
+          }
+        })
+        .filter((table) => table !== null);
+
+      console.log(`[/api/tables] Returning ${results.length} tables to client`);
+      res.json(results);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch tables" });
+      console.error("[/api/tables] Fatal error:", error);
+      res.status(500).json({ message: "Failed to fetch tables", error: String(error) });
     }
   });
 
