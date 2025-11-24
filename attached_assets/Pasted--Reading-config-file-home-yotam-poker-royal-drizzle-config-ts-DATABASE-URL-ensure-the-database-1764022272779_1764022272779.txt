@@ -1,0 +1,23 @@
+
+Reading config file '/home/yotam/poker-royal/drizzle.config.ts'
+DATABASE_URL, ensure the database is provisioned
+root@vps-e9de57e0:/home/yotam/poker-royal# pm2 restart poker-royal
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [poker-royal](ids: [ 0 ])
+[PM2] [poker-royal](0) ✓
+┌────┬────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name           │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ poker-royal    │ default     │ N/A     │ fork    │ 7906     │ 0s     │ 15   │ online    │ 0%       │ 13.3mb   │ root     │ disabled │
+└────┴────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@vps-e9de57e0:/home/yotam/poker-royal# pm2 save
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+root@vps-e9de57e0:/home/yotam/poker-royal# pm2 status
+┌────┬────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name           │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ poker-royal    │ default     │ N/A     │ fork    │ 7988     │ 1s     │ 17   │ online    │ 0%       │ 56.0mb   │ root     │ disabled │
+└────┴────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@vps-e9de57e0:/home/yotam/poker-royal# curl http://localhost:5000
+curl: (7) Failed to connect to localhost port 5000 after 0 ms: Could not connect to server
