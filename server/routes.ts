@@ -2,8 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
 import { storage } from "./storage";
+import { db } from "./db";
 import bcrypt from "bcryptjs";
 import PokerSolver from "pokersolver";
+import { games } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import type { Card, GameState, PlayerState } from "@shared/schema";
 
 // Session user type
