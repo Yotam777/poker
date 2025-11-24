@@ -21,15 +21,41 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Edit, Ban, Trash2, Settings as SettingsIcon, LogOut, Coins, Users, DollarSign } from "lucide-react";
+import { UserPlus, Edit, Ban, Trash2, Settings as SettingsIcon, LogOut, Coins, Users, DollarSign, TrendingUp, TableProperties, History } from "lucide-react";
 import { User, Settings } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+
+interface Metrics {
+  totalPlayers: number;
+  activePlayers: number;
+  totalTables: number;
+  totalCommissionCollected: string;
+  totalPotsDistributed: string;
+  commissionRate: string;
+  gamesCompleted: number;
+}
+
+interface AuditLog {
+  id: string;
+  eventType: string;
+  gameId?: string;
+  userId?: string;
+  details?: any;
+  createdAt: string;
+}
 
 export default function Admin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createTableDialogOpen, setCreateTableDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -40,6 +66,14 @@ export default function Admin() {
 
   const { data: settings } = useQuery<Settings>({
     queryKey: ["/api/admin/settings"],
+  });
+
+  const { data: metrics } = useQuery<Metrics>({
+    queryKey: ["/api/admin/metrics"],
+  });
+
+  const { data: auditLogs } = useQuery<AuditLog[]>({
+    queryKey: ["/api/admin/audit-logs"],
   });
 
   const createUserMutation = useMutation({
@@ -97,6 +131,20 @@ export default function Admin() {
     },
   });
 
+  const createTableMutation = useMutation({
+    mutationFn: async (data: { name: string; stakeAmount: string; password?: string; isPrivate: boolean }) => {
+      return await apiRequest("POST", "/api/admin/tables", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      toast({ title: "Success", description: "Table created successfully" });
+      setCreateTableDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message || "Failed to create table" });
+    },
+  });
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setLocation("/");
@@ -139,6 +187,17 @@ export default function Admin() {
     });
   };
 
+  const handleCreateTable = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    createTableMutation.mutate({
+      name: formData.get("tableName") as string,
+      stakeAmount: formData.get("stakeAmount") as string,
+      password: (formData.get("isPrivate") as string) === "on" ? (formData.get("password") as string) : undefined,
+      isPrivate: (formData.get("isPrivate") as string) === "on",
+    });
+  };
+
   const totalPlayers = users?.length || 0;
   const activePlayers = users?.filter(u => !u.isSuspended).length || 0;
 
@@ -164,42 +223,79 @@ export default function Admin() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Players</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold" data-testid="stat-total-players">{totalPlayers}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Players</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary" data-testid="stat-active-players">{activePlayers}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Commission Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-accent" data-testid="stat-commission">{settings?.commissionRate || "5.00"}%</div>
-            </CardContent>
-          </Card>
+        {/* Dashboard Metrics */}
+        <div>
+          <h2 className="text-2xl font-display font-bold mb-4">Dashboard</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Total Players
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold" data-testid="stat-total-players">{metrics?.totalPlayers || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">{metrics?.activePlayers || 0} active</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <TableProperties className="w-4 h-4" />
+                  Tables
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary" data-testid="stat-total-tables">{metrics?.totalTables || 0}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Commission
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-accent" data-testid="stat-commission">${metrics?.totalCommissionCollected || "0"}</div>
+                <p className="text-xs text-muted-foreground mt-1">{metrics?.commissionRate}% rate</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Games
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400" data-testid="stat-games">{metrics?.gamesCompleted || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">completed</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-display font-bold">Player Management</h2>
-            <p className="text-muted-foreground">Create and manage player accounts</p>
-          </div>
-          
-          <div className="flex gap-2">
+        {/* Tabs for different sections */}
+        <Tabs defaultValue="players" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="players">Players</TabsTrigger>
+            <TabsTrigger value="tables">Tables</TabsTrigger>
+            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="players" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-display font-bold">Player Management</h3>
+                <p className="text-sm text-muted-foreground">Create and manage player accounts</p>
+              </div>
+              
+              <div className="flex gap-2">
             <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" data-testid="button-open-settings">
@@ -351,7 +447,138 @@ export default function Admin() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="tables" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-display font-bold">Table Management</h3>
+                <p className="text-sm text-muted-foreground">Create and manage poker tables</p>
+              </div>
+              
+              <Dialog open={createTableDialogOpen} onOpenChange={setCreateTableDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button data-testid="button-create-table">
+                    <TableProperties className="w-4 h-4 mr-2" />
+                    Create Table
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Table</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateTable} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tableName">Table Name</Label>
+                      <Input
+                        id="tableName"
+                        name="tableName"
+                        placeholder="e.g., High Stakes Table"
+                        required
+                        data-testid="input-table-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stakeAmount">Stake Amount ($)</Label>
+                      <Input
+                        id="stakeAmount"
+                        name="stakeAmount"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="10.00"
+                        required
+                        data-testid="input-stake-amount"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isPrivate"
+                        name="isPrivate"
+                        data-testid="checkbox-private"
+                        className="w-4 h-4 rounded"
+                      />
+                      <Label htmlFor="isPrivate" className="font-normal">Make Private (Password Protected)</Label>
+                    </div>
+                    <div className="space-y-2" id="passwordField" style={{ display: 'none' }}>
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Enter password"
+                        data-testid="input-table-password"
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" data-testid="button-submit-table">
+                      Create Table
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-8 text-muted-foreground">
+                  <TableProperties className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Tables are automatically created when players join, or you can create custom tables above.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-4">
+            <div>
+              <h3 className="text-xl font-display font-bold">Audit Logs</h3>
+              <p className="text-sm text-muted-foreground">Game events and system activity</p>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                {auditLogs && auditLogs.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Event Type</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Game</TableHead>
+                        <TableHead>Timestamp</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.slice(0, 50).map(log => (
+                        <TableRow key={log.id} data-testid={`audit-log-${log.id}`}>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">{log.eventType}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">{log.userId ? log.userId.slice(0, 8) : '-'}</TableCell>
+                          <TableCell className="text-sm">{log.gameId ? log.gameId.slice(0, 8) : '-'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No audit logs yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
+
+      <script>{`
+        document.getElementById('isPrivate')?.addEventListener('change', (e) => {
+          document.getElementById('passwordField').style.display = e.target.checked ? 'block' : 'none';
+        });
+      `}</script>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>

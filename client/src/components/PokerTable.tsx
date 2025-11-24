@@ -1,7 +1,7 @@
 import { PlayerSeat } from "./PlayerSeat";
 import { PlayingCard } from "./PlayingCard";
 import { GameState } from "@shared/schema";
-import { Coins, Clock } from "lucide-react";
+import { Coins, Clock, Spade } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface PokerTableProps {
@@ -14,10 +14,20 @@ export function PokerTable({ gameState }: PokerTableProps) {
   );
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-8" data-testid="poker-table">
-      <div className="relative aspect-[16/10] bg-gradient-to-br from-primary to-primary/80 rounded-[50%] shadow-2xl p-12 border-8 border-primary/40">
-        <div className="absolute inset-8 border-4 border-primary-foreground/20 rounded-[50%]" />
-        
+    <div className="w-full h-full flex items-center justify-center p-4" data-testid="poker-table">
+      <div className="relative w-full max-w-6xl aspect-video">
+        {/* Table felt background with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f5e3a] via-[#0a4028] to-[#051f14] rounded-full shadow-2xl border-8 border-[#8b7355]/40">
+          {/* Inner border/rim */}
+          <div className="absolute inset-6 border-4 border-[#8b7355]/30 rounded-full" />
+          
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-5 rounded-full" style={{
+            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,.1) 10px, rgba(255,255,255,.1) 20px)'
+          }} />
+        </div>
+
+        {/* Player seats around table */}
         {players.map((player, idx) => (
           <PlayerSeat 
             key={idx} 
@@ -27,54 +37,61 @@ export function PokerTable({ gameState }: PokerTableProps) {
           />
         ))}
         
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
-          <div className="text-center" data-testid="pot-display">
-            <div className="text-sm text-primary-foreground/70 mb-1">Total Pot</div>
-            <div className="flex items-center gap-2 bg-background/90 backdrop-blur px-6 py-3 rounded-full shadow-lg">
-              <Coins className="w-6 h-6 text-accent" />
-              <span className="text-3xl font-display font-bold text-foreground animate-pulse-scale" data-testid="pot-amount">
-                ${gameState.totalPot}
-              </span>
-            </div>
-          </div>
+        {/* Center pot and cards area */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6">
           
+          {/* Community Cards */}
           {gameState.communityCards && gameState.communityCards.length > 0 && (
             <div className="flex flex-col items-center gap-2" data-testid="community-cards">
-              <div className="text-xs text-primary-foreground/70">Community Cards</div>
-              <div className="flex gap-2">
+              <div className="text-xs font-semibold text-[#ffd700] tracking-widest uppercase">Community</div>
+              <div className="flex gap-2 drop-shadow-lg">
                 {gameState.communityCards.map((card, idx) => (
                   <PlayingCard 
                     key={idx} 
                     card={card}
                     className="animate-card-deal"
-                    style={{ animationDelay: `${idx * 150}ms` } as React.CSSProperties}
+                    style={{ animationDelay: `${idx * 120}ms` }}
                   />
                 ))}
               </div>
             </div>
           )}
+
+          {/* Pot Display */}
+          <div className="text-center" data-testid="pot-display">
+            <div className="text-xs font-semibold text-[#ffd700] tracking-widest uppercase mb-2">Total Pot</div>
+            <div className="flex items-center gap-3 bg-black/40 backdrop-blur-sm px-8 py-4 rounded-full shadow-2xl border-2 border-[#ffd700]/30 hover:border-[#ffd700]/50 transition-all">
+              <Coins className="w-8 h-8 text-[#ffd700] animate-pulse" />
+              <span className="text-4xl font-display font-bold text-[#ffd700] drop-shadow-lg" data-testid="pot-amount">
+                ${gameState.totalPot}
+              </span>
+            </div>
+          </div>
         </div>
         
-        <div className="absolute top-4 left-4 flex flex-col gap-2" data-testid="round-indicator">
-          <Badge variant="secondary" className="text-base font-semibold">
-            Round {gameState.currentRound} of 3
+        {/* Round info - Top Left */}
+        <div className="absolute top-6 left-6 flex flex-col gap-3" data-testid="round-indicator">
+          <Badge variant="secondary" className="text-base font-semibold bg-black/50 text-[#ffd700] border-[#ffd700]/30">
+            <Spade className="w-4 h-4 mr-2" />
+            Round {gameState.currentRound} / 3
           </Badge>
           {gameState.roundTimeRemaining !== undefined && (
-            <Badge variant="outline" className="text-sm">
+            <Badge variant="outline" className="text-sm bg-black/50 text-[#ffd700] border-[#ffd700]/30">
               <Clock className="w-3 h-3 mr-1" />
-              {gameState.roundTimeRemaining}s
+              {gameState.roundTimeRemaining}s remaining
             </Badge>
           )}
         </div>
         
+        {/* Last round winner - Top Right */}
         {gameState.lastRoundWinner && (
           <div 
-            className="absolute top-4 right-4 bg-accent/90 backdrop-blur text-accent-foreground px-4 py-2 rounded-lg shadow-lg"
+            className="absolute top-6 right-6 bg-[#ffd700]/95 backdrop-blur text-[#051f14] px-6 py-4 rounded-lg shadow-2xl border-2 border-[#ffd700] drop-shadow-lg"
             data-testid="last-winner"
           >
-            <div className="text-xs font-medium">Last Round Winner</div>
-            <div className="font-bold">{gameState.lastRoundWinner.username}</div>
-            <div className="text-xs">{gameState.lastRoundWinner.handName}</div>
+            <div className="text-xs font-bold tracking-widest uppercase opacity-75">Last Winner</div>
+            <div className="font-display font-bold text-lg">{gameState.lastRoundWinner.username}</div>
+            <div className="text-xs font-semibold opacity-75">{gameState.lastRoundWinner.handName}</div>
           </div>
         )}
       </div>
