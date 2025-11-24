@@ -440,6 +440,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Broadcast updated game state
         await broadcastGameState(game.id, io);
+        
+        // Notify all clients that tables have been updated
+        io.emit("tables-updated");
 
         // Start game if we have 2+ players
         const players = await storage.getGamePlayers(game.id);
@@ -456,6 +459,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
+      // Broadcast update when player disconnects
+      io.emit("tables-updated");
     });
   });
 
