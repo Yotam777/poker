@@ -11,15 +11,21 @@ import {
   type InsertRound,
   type Settings,
   type InsertSettings,
+  type AuditLog,
+  type InsertAuditLog,
+  type PlayerStats,
+  type InsertPlayerStats,
   users,
   tables,
   games,
   gamePlayers,
   rounds,
   settings,
+  auditLogs,
+  playerStats,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -35,6 +41,7 @@ export interface IStorage {
   getAllTables(): Promise<Table[]>;
   createTable(table: InsertTable): Promise<Table>;
   deleteTable(id: string): Promise<void>;
+  updateTable(id: string, updates: Partial<Table>): Promise<Table>;
   
   // Game operations
   getGame(id: string): Promise<Game | undefined>;
@@ -57,6 +64,16 @@ export interface IStorage {
   // Settings operations
   getSettings(): Promise<Settings>;
   updateSettings(updates: Partial<Settings>): Promise<Settings>;
+  
+  // Audit log operations
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(limit: number): Promise<AuditLog[]>;
+  getGameAuditLogs(gameId: string): Promise<AuditLog[]>;
+  
+  // Player stats operations
+  getPlayerStats(userId: string): Promise<PlayerStats | undefined>;
+  createPlayerStats(stats: InsertPlayerStats): Promise<PlayerStats>;
+  updatePlayerStats(userId: string, updates: Partial<PlayerStats>): Promise<PlayerStats>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -102,6 +119,12 @@ export class DatabaseStorage implements IStorage {
 
   async createTable(insertTable: InsertTable): Promise<Table> {
     const [table] = await db.insert(tables).values(insertTable).returning();
+    return table;
+  }
+
+  async updateTable(id: string, updates: Partial<Table>): Promise<Table> {
+    const [table] = await db.update(tables).set(updates).where(eq(tables.id, id)).returning();
+    if (!table) throw new Error("Table not found");
     return table;
   }
 
@@ -193,7 +216,6 @@ export class DatabaseStorage implements IStorage {
   async getSettings(): Promise<Settings> {
     const [setting] = await db.select().from(settings).limit(1);
     if (!setting) {
-      // Create default settings if none exist
       const [newSetting] = await db.insert(settings).values({ commissionRate: "5.00" }).returning();
       return newSetting;
     }
@@ -208,6 +230,49 @@ export class DatabaseStorage implements IStorage {
       .where(eq(settings.id, existingSettings.id))
       .returning();
     if (!updated) throw new Error("Settings not found");
+    return updated;
+  }
+
+  // Audit log operations
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [auditLog] = await db.insert(auditLogs).values(log).returning();
+    return auditLog;
+  }
+
+  async getAuditLogs(limit: number = 100): Promise<AuditLog[]> {
+    return await db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(limit);
+  }
+
+  async getGameAuditLogs(gameId: string): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.gameId, gameId))
+      .orderBy(desc(auditLogs.createdAt));
+  }
+
+  // Player stats operations
+  async getPlayerStats(userId: string): Promise<PlayerStats | undefined> {
+    const [stats] = await db.select().from(playerStats).where(eq(playerStats.userId, userId));
+    return stats || undefined;
+  }
+
+  async createPlayerStats(stats: InsertPlayerStats): Promise<PlayerStats> {
+    const [newStats] = await db.insert(playerStats).values(stats).returning();
+    return newStats;
+  }
+
+  async updatePlayerStats(userId: string, updates: Partial<PlayerStats>): Promise<PlayerStats> {
+    const existing = await this.getPlayerStats(userId);
+    if (!existing) {
+      return this.createPlayerStats({ userId, ...updates });
+    }
+    const [updated] = await db
+      .update(playerStats)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(playerStats.userId, userId))
+      .returning();
+    if (!updated) throw new Error("Player stats not found");
     return updated;
   }
 }

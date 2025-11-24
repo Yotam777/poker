@@ -234,6 +234,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin metrics route
+  app.get("/api/admin/metrics", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const admin = await storage.getUser(req.session.userId);
+    if (!admin?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const allUsers = await storage.getAllUsers();
+      const allTables = await storage.getAllTables();
+      const settings = await storage.getSettings();
+      
+      let totalCommissionCollected = "0";
+      let totalPotsDistributed = "0";
+      
+      const allGames = await db.select().from(games).where(eq(games.status, "completed"));
+      for (const game of allGames) {
+        totalCommissionCollected = (parseFloat(totalCommissionCollected) + parseFloat(game.commission)).toFixed(2);
+        totalPotsDistributed = (parseFloat(totalPotsDistributed) + parseFloat(game.totalPot)).toFixed(2);
+      }
+
+      const metrics = {
+        totalPlayers: allUsers.filter(u => !u.isAdmin).length,
+        activePlayers: allUsers.filter(u => !u.isAdmin && !u.isSuspended).length,
+        totalTables: allTables.length,
+        totalCommissionCollected,
+        totalPotsDistributed,
+        commissionRate: settings.commissionRate,
+        gamesCompleted: allGames.length,
+      };
+
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch metrics" });
+    }
+  });
+
+  // Create custom table route
+  app.post("/api/admin/tables", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const admin = await storage.getUser(req.session.userId);
+    if (!admin?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const { name, stakeAmount, password, isPrivate } = req.body;
+      const table = await storage.createTable({
+        name,
+        stakeAmount: stakeAmount.toString(),
+        password: password || null,
+        maxPlayers: 6,
+        isPrivate: isPrivate || false,
+      });
+      res.json(table);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create table" });
+    }
+  });
+
+  // Get audit logs route
+  app.get("/api/admin/audit-logs", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const admin = await storage.getUser(req.session.userId);
+    if (!admin?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const logs = await storage.getAuditLogs(100);
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
   // Table routes
   app.get("/api/tables", async (req, res) => {
     try {
