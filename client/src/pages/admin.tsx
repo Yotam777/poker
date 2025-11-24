@@ -190,11 +190,18 @@ export default function Admin() {
   const handleCreateTable = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
     createTableMutation.mutate({
       name: formData.get("tableName") as string,
       stakeAmount: formData.get("stakeAmount") as string,
       password: (formData.get("isPrivate") as string) === "on" ? (formData.get("password") as string) : undefined,
       isPrivate: (formData.get("isPrivate") as string) === "on",
+    }, {
+      onSuccess: () => {
+        form.reset();
+        const passwordField = document.getElementById('passwordField');
+        if (passwordField) passwordField.style.display = 'none';
+      }
     });
   };
 

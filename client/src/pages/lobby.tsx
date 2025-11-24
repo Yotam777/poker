@@ -22,7 +22,7 @@ export default function Lobby() {
     queryKey: ["/api/auth/me"],
   });
 
-  const { data: tables, isLoading: tablesLoading } = useQuery<LobbyTable[]>({
+  const { data: tables = [], isLoading: tablesLoading } = useQuery<LobbyTable[]>({
     queryKey: ["/api/tables"],
     refetchInterval: 3000,
   });
@@ -121,24 +121,27 @@ export default function Lobby() {
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
             <div className="text-muted-foreground">Loading tables...</div>
           </div>
-        ) : tables && tables.length > 0 ? (
+        ) : Array.isArray(tables) && tables.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="tables-grid">
-            {tables.map(table => (
-              <TableCard
-                key={table.id}
-                table={table}
-                playerCount={table.playerCount}
-                playerNames={table.playerNames}
-                onJoin={handleJoinTable}
-                canJoin={currentUser !== null && table.playerCount < table.maxPlayers}
-              />
-            ))}
+            {tables.map((table) => {
+              if (!table || !table.id) return null;
+              return (
+                <TableCard
+                  key={table.id}
+                  table={table}
+                  playerCount={table.playerCount || 0}
+                  playerNames={table.playerNames || []}
+                  onJoin={handleJoinTable}
+                  canJoin={currentUser !== null && (table.playerCount || 0) < (table.maxPlayers || 6)}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12 space-y-4">
             <Users className="w-16 h-16 text-muted-foreground mx-auto" />
             <div className="text-xl font-medium">No tables available</div>
-            <p className="text-muted-foreground">Contact an admin to create tables</p>
+            <p className="text-muted-foreground">{tables && tables.length === 0 ? 'No tables created yet. Contact an admin to create tables.' : 'Loading...'}</p>
           </div>
         )}
       </main>
