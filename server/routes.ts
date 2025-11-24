@@ -298,6 +298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPlayers: 6,
         isPrivate: isPrivate || false,
       });
+      
+      // Broadcast table creation to all connected clients
+      io.emit("table-created", table);
+      
       res.json(table);
     } catch (error) {
       res.status(400).json({ message: "Failed to create table" });

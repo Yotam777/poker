@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TableCard } from "@/components/TableCard";
 import { Button } from "@/components/ui/button";
 import { Coins, LogOut, Users, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, User } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import { io } from "socket.io-client";
 
 interface LobbyTable extends Table {
   playerCount: number;
@@ -17,6 +18,7 @@ export default function Lobby() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
@@ -32,6 +34,20 @@ export default function Lobby() {
       setCurrentUser(user);
     }
   }, [user]);
+
+  // Listen for real-time table updates
+  useEffect(() => {
+    const socket = io();
+    
+    socket.on("table-created", () => {
+      // Refetch tables immediately when a new table is created
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+    });
+    
+    return () => {
+      socket.disconnect();
+    };
+  }, [queryClient]);
 
   const handleLogout = async () => {
     try {
