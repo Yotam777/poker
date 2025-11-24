@@ -32,8 +32,8 @@
   --secondary-foreground: 0 0% 9%;
   --muted: 0 4% 92%;
   --muted-foreground: 0 2% 40%;
-  --accent: 142 8% 92%;
-  --accent-foreground: 142 6% 12%;
+  --accent: 45 93% 47%;
+  --accent-foreground: 45 15% 15%;
   --destructive: 0 84% 35%;
   --destructive-foreground: 0 20% 98%;
   --input: 0 0% 75%;
@@ -43,9 +43,10 @@
   --chart-3: 208 80% 40%;
   --chart-4: 280 65% 45%;
   --chart-5: 340 75% 42%;
-  --font-sans: Open Sans, sans-serif;
-  --font-serif: Georgia, serif;
+  --font-sans: Inter, sans-serif;
+  --font-serif: Playfair Display, serif;
   --font-mono: Menlo, monospace;
+  --font-display: Playfair Display, serif;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
@@ -116,8 +117,8 @@
   --secondary-foreground: 0 0% 95%;
   --muted: 0 4% 16%;
   --muted-foreground: 0 2% 65%;
-  --accent: 142 8% 16%;
-  --accent-foreground: 142 6% 88%;
+  --accent: 45 93% 47%;
+  --accent-foreground: 45 15% 98%;
   --destructive: 0 84% 35%;
   --destructive-foreground: 0 20% 98%;
   --input: 0 0% 30%;

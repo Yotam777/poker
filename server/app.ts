@@ -6,7 +6,7 @@ import express, {
   Response,
   NextFunction,
 } from "express";
-
+import session from "express-session";
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -21,6 +21,20 @@ export function log(message: string, source = "express") {
 }
 
 export const app = express();
+
+// Session configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "poker-royal-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    },
+  })
+);
 
 declare module 'http' {
   interface IncomingMessage {
