@@ -14,8 +14,8 @@ export function PokerTable({ gameState }: PokerTableProps) {
   );
 
   return (
-    <div className="w-full h-full flex items-center justify-center p-4" data-testid="poker-table">
-      <div className="relative w-full max-w-6xl aspect-video">
+    <div className="w-full h-screen flex items-center justify-center p-2 md:p-4 overflow-auto" data-testid="poker-table">
+      <div className="relative w-full max-w-sm md:max-w-2xl lg:max-w-6xl aspect-video min-h-min">
         {/* Table felt background with gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0f5e3a] via-[#0a4028] to-[#051f14] rounded-full shadow-2xl border-8 border-[#8b7355]/40">
           {/* Inner border/rim */}
