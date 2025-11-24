@@ -5,7 +5,7 @@ import { PokerTable } from "@/components/PokerTable";
 import { WinnerModal } from "@/components/WinnerModal";
 import { TableHistory } from "@/components/TableHistory";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { GameState, User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { io, Socket } from "socket.io-client";
@@ -120,6 +120,13 @@ export default function Game() {
     setLocation("/lobby");
   };
 
+  const handleGoToAdmin = () => {
+    if (socket) {
+      socket.close();
+    }
+    setLocation("/admin");
+  };
+
   if (!gameState) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -154,6 +161,12 @@ export default function Game() {
           
           <div className="flex items-center gap-4">
             <TableHistory rounds={roundHistory} />
+            {user?.username === "admin" && (
+              <Button variant="outline" onClick={handleGoToAdmin} data-testid="button-admin-panel">
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
           </div>
         </div>
       </header>

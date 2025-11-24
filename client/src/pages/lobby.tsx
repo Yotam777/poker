@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { TableCard } from "@/components/TableCard";
 import { Button } from "@/components/ui/button";
-import { Coins, LogOut, Users } from "lucide-react";
+import { Coins, LogOut, Users, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, User } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +101,12 @@ export default function Lobby() {
                   {currentUser.username}
                 </div>
               </>
+            )}
+            {currentUser?.username === "admin" && (
+              <Button variant="outline" onClick={() => setLocation("/admin")} data-testid="button-admin-panel">
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
             )}
             <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
               <LogOut className="w-4 h-4 mr-2" />
