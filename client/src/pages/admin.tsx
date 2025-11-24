@@ -28,7 +28,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Edit, Ban, Trash2, Settings as SettingsIcon, LogOut, Coins, Users, DollarSign, TrendingUp, TableProperties, History } from "lucide-react";
+import { UserPlus, Edit, Ban, Trash2, Settings as SettingsIcon, LogOut, Coins, Users, DollarSign, TrendingUp, TableProperties, History, Home } from "lucide-react";
 import { User, Settings } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -222,10 +222,16 @@ export default function Admin() {
             </div>
           </div>
           
-          <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => setLocation("/lobby")} data-testid="button-to-lobby">
+              <Home className="w-4 h-4 mr-2" />
+              Back to Tables
+            </Button>
+            <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
